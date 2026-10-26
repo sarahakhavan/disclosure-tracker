@@ -48,8 +48,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: tracker.db
-          key: tracker-db-v3-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: tracker-db-v3-${{ runner.os }}-
+          key: tracker-db-v4-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: tracker-db-v4-${{ runner.os }}-
 
       # Previous report is needed so alerts only mention what's new
       - name: Fetch previous report
@@ -70,7 +70,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: tracker.db
-          key: tracker-db-v3-${{ runner.os }}-${{ github.run_id }}
+          key: tracker-db-v4-${{ runner.os }}-${{ github.run_id }}
 
       # Runs even when the update failed, so diagnostics are always visible
       - name: Publish report to tracker-data branch

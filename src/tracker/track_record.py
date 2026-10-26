@@ -70,12 +70,17 @@ def collapse_decisions(trades: pd.DataFrame) -> pd.DataFrame:
     return agg.sort_values("trade_date").reset_index(drop=True)
 
 
-def _forward(px: np.ndarray, start_idx: int, h: int) -> float | None:
+# Entries below this price are skipped: Yahoo's adjusted history for penny and
+# OTC names is unreliable (adjusted closes can even go negative).
+MIN_ENTRY_PRICE = 1.0
+
+
+def _forward(px: np.ndarray, start_idx: int, h: int, min_entry: float = 0.0) -> float | None:
     end = start_idx + h
     if start_idx < 0 or end >= len(px):
         return None
     a, b = px[start_idx], px[end]
-    if not (np.isfinite(a) and np.isfinite(b)) or a <= 0:
+    if not (np.isfinite(a) and np.isfinite(b)) or a <= 0 or b <= 0 or a < min_entry:
         return None
     return float(b / a - 1.0)
 
@@ -121,7 +126,7 @@ def compute_decision_returns(decisions: pd.DataFrame, prices: pd.DataFrame) -> p
                 continue
             entries[a][i] = dates[idx]
             for hz, h in HORIZONS.items():
-                r = _forward(px, idx, h)
+                r = _forward(px, idx, h, MIN_ENTRY_PRICE)
                 b = _forward(bench, idx, h)
                 if r is None or b is None:
                     continue

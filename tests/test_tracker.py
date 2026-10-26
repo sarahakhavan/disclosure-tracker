@@ -328,3 +328,13 @@ def test_collapse_drops_impossible_dates():
     )
     d = tr.collapse_decisions(t)
     assert len(d) == 1 and d.iloc[0].trade_date == pd.Timestamp("2023-02-01")
+
+
+def test_nonpositive_or_penny_prices_are_not_scored():
+    idx = pd.bdate_range("2023-01-02", periods=200)
+    px = pd.DataFrame({"SPY": 100.0, "OTC": np.r_[np.full(50, 0.5), np.full(150, 0.6)],
+                       "NEG": np.r_[np.full(50, 5.0), np.full(150, -1.0)]}, index=idx)
+    t = pd.DataFrame([_trade(1, "h:A", "OTC", "buy", "2023-01-03", "2023-01-04"),
+                      _trade(2, "h:A", "NEG", "sell", "2023-01-03", "2023-01-04")])
+    d = tr.compute_decision_returns(tr.collapse_decisions(t), px)
+    assert d["disclosure_1m"].isna().all() and not d["priced"].any()

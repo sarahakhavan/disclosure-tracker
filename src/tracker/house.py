@@ -233,15 +233,16 @@ class HouseClient:
                 self.diag.setdefault("party_errors", []).append(f"{url}: {str(e)[:120]}")
                 continue
             for row in csv.DictReader(io.StringIO(r.text)):
-                if row.get("type") != "rep":
-                    continue
+                # Any chamber: the file lists only each person's latest term, so
+                # a member who moved to the Senate shows up as "sen".
                 k = (row.get("last_name", "").lower(), row.get("state", "").upper())
                 self._party.setdefault(k, (row.get("party") or "")[:1].upper())
         self.diag["parties"] = len(self._party)
 
     def _actor(self, mem: dict) -> tuple[str, str, str]:
         state = mem["state_dst"][:2].upper()
-        first = re.sub(r"\s+[A-Z]\.$", "", mem["first"]).strip()  # drop trailing middle initial
+        first = re.sub(r"\b(Hon|Mr|Mrs|Ms|Dr)\.?(?=\s|$)", "", mem["first"])  # stray honorifics
+        first = re.sub(r"(\s+[A-Z]\.?)+$", "", first.strip()).strip()  # trailing middle initials
         party = self._party.get((mem["last"].lower(), state), "")
         name = f"Rep. {first} {mem['last']} ({party}-{state})" if party else f"Rep. {first} {mem['last']} ({state})"
         actor_id = "house:" + re.sub(r"[^a-z]", "", (mem["last"] + first.split(" ")[0]).lower()) + ":" + state
