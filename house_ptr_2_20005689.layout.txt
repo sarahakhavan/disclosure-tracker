@@ -1,0 +1,41 @@
+                                                                                                                        Filing ID #20005689
+                        PerioDic                 t    ranSaction                      r    ePort
+
+
+
+         Clerk of the House of Representatives • legislative Resource Center • 135 Cannon Building • Washington, DC 20515
+
+
+f iler  information
+name:               Hon. Nancy Pelosi
+Status:             Member
+State/District:     Ca12
+
+
+t ranSactionS
+
+iD        owner     asset                                       transaction      Date          notification     amount
+                                                                type                           Date
+
+          SP        Mcgrath RentCorp (MgRC)                     S                07/21/2016    07/21/2016       $250,001 - $500,000
+
+                    FIlINg STaTuS: New
+                    DESCRIPTIoN: Sale of 8,000 Shares
+
+
+          SP        Visa Inc. (V)                               S                07/21/2016    07/21/2016       $50,001 - $100,000
+
+                    FIlINg STaTuS: New
+                    DESCRIPTIoN: Sale of 1,250 Shares
+
+
+initial   Public     o fferingS
+
+nmlkj Yes nmlkji No
+
+c ertification      anD   Signature
+
+gfedcb I CERTIFY that the statements I have made on the attached Periodic Transaction Report are true, complete, and correct to the
+best of my knowledge and belief.
+
+Digitally Signed: Hon. Nancy Pelosi , 08/17/2016

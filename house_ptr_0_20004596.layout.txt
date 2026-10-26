@@ -1,0 +1,41 @@
+                                                                                                                           Filing ID #20004596
+                         PerioDic                  t   ranSaction                       r    ePort
+
+
+
+         Clerk of the House of Representatives • legislative Resource Center • 135 Cannon Building • Washington, DC 20515
+
+
+f iler   information
+name:               Hon. Nancy Pelosi
+Status:             Member
+State/District:     Ca12
+
+
+t ranSactionS
+
+iD        owner      asset                                        transaction      Date          notification      amount
+                                                                  type                           Date
+
+                     apple Inc. (aaPl)                            P                01/13/2016    01/13/2016        $250,001 - $500,000
+
+                     FIlINg sTaTus: New
+                     DEsCRIPTIoN: Purchase of 200 call options with a strike price of $90 and an expiration date of 1/20/17
+
+
+                     Walt Disney Company (DIs)                    P                01/15/2016    01/15/2016        $500,001 - $1,000,000
+
+                     FIlINg sTaTus: New
+                     DEsCRIPTIoN: Exercised 100 call options (10,000 shares) expiring 1/15/16 at a strike price of $90
+
+
+initial    Public    o  fferingS
+
+ nmlkj Yes nmlkji No
+
+c ertification       anD   Signature
+
+gfedcb I CERTIFY that the statements I have made on the attached Periodic Transaction Report are true, complete, and correct to the
+best of my knowledge and belief.
+
+Digitally Signed: Hon. Nancy Pelosi , 02/17/2016

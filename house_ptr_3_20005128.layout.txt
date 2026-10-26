@@ -1,0 +1,40 @@
+                                                                                                                         Filing ID #20005128
+                        PerioDic                  t   ranSaction                      r    ePort
+
+
+
+         Clerk of the House of Representatives • legislative Resource Center • 135 Cannon building • Washington, DC 20515
+
+
+f iler  information
+name:               Hon. Steve Cohen
+Status:             Member
+State/District:     TN09
+
+
+t ranSactionS
+
+iD        owner     asset                                       transaction      Date          notification      amount
+                                                                type                           Date
+
+                    Time Warner Cable Inc (TWC)                 S                05/20/2016    06/7/2016         $1,001 - $15,000
+
+                    FIlINg STATuS: New
+                    SubHOlDINg OF: Stephens SEP IRA
+
+
+a SSet   c laSS   DetailS
+
+     Stephens SEP IRA
+
+
+initial   Public     o fferingS
+
+nmlkj Yes nmlkji No
+
+c ertification      anD   Signature
+
+gfedcb I CERTIFY that the statements I have made on the attached Periodic Transaction Report are true, complete, and correct to the
+best of my knowledge and belief.
+
+Digitally Signed: Hon. Steve Cohen , 06/7/2016

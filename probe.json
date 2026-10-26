@@ -1,0 +1,57 @@
+{
+  "house_zip": 200,
+  "house_zip_files": [
+    "2016FD.txt",
+    "2016FD.xml"
+  ],
+  "house_members": 2704,
+  "house_ptrs": 765,
+  "house_pdf_0": {
+    "url": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2016/20004596.pdf",
+    "status": 200,
+    "bytes": 68349,
+    "member": " <Prefix>Hon.</Prefix> <Last>Pelosi</Last> <First>Nancy</First> <Suffix /> <FilingType>P</FilingType> <StateDst>CA12</StateDst> <Year>2016</Year> <FilingDate>2/17/2016</FilingDate> <DocID>20004596</DocID> "
+  },
+  "house_pdf_1": {
+    "url": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2016/20005096.pdf",
+    "status": 200,
+    "bytes": 52170,
+    "member": " <Prefix>Hon.</Prefix> <Last>Pelosi</Last> <First>Nancy</First> <Suffix /> <FilingType>P</FilingType> <StateDst>CA12</StateDst> <Year>2016</Year> <FilingDate>5/24/2016</FilingDate> <DocID>20005096</DocID> "
+  },
+  "house_pdf_2": {
+    "url": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2016/20005689.pdf",
+    "status": 200,
+    "bytes": 51264,
+    "member": " <Prefix>Hon.</Prefix> <Last>Pelosi</Last> <First>Nancy</First> <Suffix /> <FilingType>P</FilingType> <StateDst>CA12</StateDst> <Year>2016</Year> <FilingDate>8/17/2016</FilingDate> <DocID>20005689</DocID> "
+  },
+  "house_pdf_3": {
+    "url": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2016/20005128.pdf",
+    "status": 200,
+    "bytes": 50892,
+    "member": " <Prefix>Hon.</Prefix> <Last>Cohen</Last> <First>Steve</First> <Suffix /> <FilingType>P</FilingType> <StateDst>TN09</StateDst> <Year>2016</Year> <FilingDate>6/7/2016</FilingDate> <DocID>20005128</DocID> "
+  },
+  "house_pdf_4": {
+    "url": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2016/20005540.pdf",
+    "status": 200,
+    "bytes": 50833,
+    "member": " <Prefix>Hon.</Prefix> <Last>Cohen</Last> <First>Steve</First> <Suffix /> <FilingType>P</FilingType> <StateDst>TN09</StateDst> <Year>2016</Year> <FilingDate>7/15/2016</FilingDate> <DocID>20005540</DocID> "
+  },
+  "house_pdf_5": {
+    "url": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2016/20005753.pdf",
+    "status": 200,
+    "bytes": 51743,
+    "member": " <Prefix>Hon.</Prefix> <Last>Cohen</Last> <First>Steve</First> <Suffix /> <FilingType>P</FilingType> <StateDst>TN09</StateDst> <Year>2016</Year> <FilingDate>8/23/2016</FilingDate> <DocID>20005753</DocID> "
+  },
+  "house_pdf_6": {
+    "url": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2016/20005402.pdf",
+    "status": 200,
+    "bytes": 50509,
+    "member": " <Prefix>Hon.</Prefix> <Last>Gibbs</Last> <First>Bob</First> <Suffix /> <FilingType>P</FilingType> <StateDst>OH07</StateDst> <Year>2016</Year> <FilingDate>6/26/2016</FilingDate> <DocID>20005402</DocID> "
+  },
+  "house_pdf_7": {
+    "url": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2016/20005492.pdf",
+    "status": 200,
+    "bytes": 54734,
+    "member": " <Prefix>Hon.</Prefix> <Last>Gibbs</Last> <First>Bob</First> <Suffix /> <FilingType>P</FilingType> <StateDst>OH07</StateDst> <Year>2016</Year> <FilingDate>7/9/2016</FilingDate> <DocID>20005492</DocID> "
+  }
+}

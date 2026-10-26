@@ -1,0 +1,41 @@
+                                                                                                                      Filing ID #20005402
+                        PerioDic                 t   ranSaction                     r    ePort
+
+
+
+         Clerk of the House of Representatives • Legislative Resource Center • 135 Cannon Building • Washington, DC 20515
+
+
+f iler  information
+name:              Hon. Bob Gibbs
+Status:            Member
+State/District:    oH07
+
+
+t ranSactionS
+
+iD        owner     asset                                      transaction      Date          notification     amount
+                                                               type                           Date
+
+                    annaly Capital Management Inc (NLY)        P                06/23/2016    06/23/2016       $1,001 - $15,000
+
+                    FILING STaTUS: New
+                    SUBHoLDING oF: CHaRLES SWaBB aCCoUNT
+
+
+a SSet   c laSS  DetailS
+
+     CHaRLES SWaBB aCCoUNT
+     LoCaTIoN: US
+
+
+initial   Public    o  fferingS
+
+nmlkj Yes nmlkji No
+
+c ertification      anD   Signature
+
+gfedcb I CERTIFY that the statements I have made on the attached Periodic Transaction Report are true, complete, and correct to the
+best of my knowledge and belief.
+
+Digitally Signed: Hon. Bob Gibbs , 06/26/2016

@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FinancialDisclosure>
+  <Member>
+    <Prefix>Hon.</Prefix>
+    <Last>Abraham</Last>
+    <First>Ralph Lee</First>
+    <Suffix />
+    <FilingType>A</FilingType>
+    <StateDst>LA05</StateDst>
+    <Year>2016</Year>
+    <FilingDate>6/26/2018</FilingDate>
+    <DocID>10023807</DocID>
+  </Member>
+  <Member>
+    <Prefix>Hon.</Prefix>
+    <Last>Abraham</Last>
+    <First>Ralph Lee</First>
+    <Suffix />
+    <FilingType>O</FilingType>
+    <StateDst>LA05</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/14/2017</FilingDate>
+    <DocID>10015144</DocID>
+  </Member>
+  <Member>
+    <Prefix>Mr.</Prefix>
+    <Last>Accavitti</Last>
+    <First>Frank</First>
+    <Suffix>Jr.</Suffix>
+    <FilingType>C</FilingType>
+    <StateDst>MI10</StateDst>
+    <Year>2016</Year>
+    <FilingDate>6/14/2016</FilingDate>
+    <DocID>10011459</DocID>
+  </Member>
+  <Member>
+    <Prefix>Mr.</Prefix>
+    <Last>Accavitti</Last>
+    <First>Frank</First>
+    <Suffix>Jr.</Suffix>
+    <FilingType>X</FilingType>
+    <StateDst>MI10</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/23/2016</FilingDate>
+    <DocID>30002320</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Achadjian</Last>
+    <First>Khatchik</First>
+    <Suffix />
+    <FilingType>X</FilingType>
+    <StateDst>CA24</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/13/2016</FilingDate>
+    <DocID>30001873</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Acker</Last>
+    <First>Brandon W.</First>
+    <Suffix />
+    <FilingType>C</FilingType>
+    <StateDst>NC07</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/17/2016</FilingDate>
+    <DocID>10012501</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Ackley</Last>
+    <First>Gordon P.</First>
+    <Suffix />
+    <FilingType>C</FilingType>
+    <StateDst>VI00</StateDst>
+    <Year>2016</Year>
+    <FilingDate>7/13/2016</FilingDate>
+    <DocID>9109643</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Ackley</Last>
+    <First>Gordon P.</First>
+    <Suffix />
+    <FilingType>D</FilingType>
+    <StateDst>VI00</StateDst>
+    <Year>2016</Year>
+    <FilingDate>7/13/2016</FilingDate>
+    <DocID>40000610</DocID>
+  </Member>
+  <Member>
+    <Prefix>Hon.</Prefix>
+    <Last>Adams</Last>
+    <First>Alma Shealey</First>
+    <Suffix />
+    <FilingType>O</FilingType>
+    <StateDst>NC12</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/4/2017</FilingDate>
+    <DocID>10016059</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Adams</Last>
+    <First>Desmund Douglas</First>
+    <Suffix />
+    <FilingType>C</FilingType>
+    <StateDst>IA03</StateDst>
+    <Year>2016</Year>
+    <FilingDate>11/21/2016</FilingDate>
+    <DocID>10014276</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Adams</Last>
+    <First>Eddie</First>
+    <Suffix>Jr</Suffix>
+    <FilingType>C</FilingType>
+    <StateDst>FL14</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/17/2016</FilingDate>
+    <DocID>9109370</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Adams</Last>
+    <First>Sandy</First>
+    <Suffix />
+    <FilingType>W</FilingType>
+    <StateDst>FL06</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/3/2016</FilingDate>
+    <DocID>6174</DocID>
+  </Member>
+  <Member>
+    <Prefix>Mr.</Prefix>
+    <Last>Adams</Last>
+    <First>Scott Michael</First>
+    <Suffix />
+    <FilingType>C</FilingType>
+    <StateDst>CA38</StateDst>
+    <Year>2016</Year>
+    <FilingDate>4/24/2016</FilingDate>
+    <DocID>10010409</DocID>
+  </Member>
+  <Member>
+    <Prefix>Hon.</Prefix>
+    <Last>Aderholt</Last>
+    <First>Robert B.</First>
+    <Suffix />
+    <FilingType>A</FilingType>
+    <StateDst>AL04</StateDst>
+    <Year>2016</Year>
+    <FilingDate>9/15/2017</FilingDate>
+    <DocID>9111804</DocID>
+  </Member>
+  <Member>
+    <Prefix>Hon.</Prefix>
+    <Last>Aderholt</Last>
+    <First>Robert B.</First>
+    <Suffix />
+    <FilingType>O</FilingType>
+    <StateDst>AL04</StateDst>
+    <Year>2016</Year>
+    <FilingDate>8/11/2017</FilingDate>
+    <DocID>10015775</DocID>
+  </Member>
+  <Member>
+    <Prefix>Hon.</Prefix>
+    <Last>Aderholt</Last>
+    <First>Robert B.</First>
+    <Suffix />
+    <FilingType>X</FilingType>
+    <StateDst>AL04</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/12/2017</FilingDate>
+    <DocID>30003045</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Adkins</Last>
+    <First>Alexander Edward Mr</First>
+    <Suffix />
+    <FilingType>C</FilingType>
+    <StateDst>HI01</StateDst>
+    <Year>2016</Year>
+    <FilingDate>6/11/2016</FilingDate>
+    <DocID>10013019</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Adkins</Last>
+    <First>Alexander Edward Mr</First>
+    <Suffix />
+    <FilingType>W</FilingType>
+    <StateDst />
+    <Year>2016</Year>
+    <FilingDate />
+    <DocID>9109516</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Adkins</Last>
+    <First>Alexander Edward Mr</First>
+    <Suffix />
+    <FilingType>W</FilingType>
+    <StateDst>HI01</StateDst>
+    <Year>2016</Year>
+    <FilingDate>6/27/2016</FilingDate>
+    <DocID>6198</DocID>
+  </Member>
+  <Member>
+    <Prefix>Hon.</Prefix>
+    <Last>Aguilar</Last>
+    <First>Pete</First>
+    <Suffix />
+    <FilingType>O</FilingType>
+    <StateDst>CA31</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/2/2017</FilingDate>
+    <DocID>10015597</DocID>
+  </Member>
+  <Member>
+    <Prefix>Mr.</Prefix>
+    <Last>Alarcon</Last>
+    <First>Richard Anthony</First>
+    <Suffix />
+    <FilingType>C</FilingType>
+    <StateDst>CA29</StateDst>
+    <Year>2016</Year>
+    <FilingDate>5/9/2016</FilingDate>
+    <DocID>10011288</DocID>
+  </Member>
+  <Member>
+    <Prefix />
+    <Last>Albarran</Last>
+    <First>Charlene M.</First>
+    <Suffix />
+    <FilingType>C</FilingType>
+    <StateDst>UT02</StateDst>
+    <Year>2016</Year>
+ 

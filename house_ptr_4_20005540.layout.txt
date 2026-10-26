@@ -1,0 +1,43 @@
+                                                                                                                      Filing ID #20005540
+                        PerioDic                 t   ranSaction                     r    ePort
+
+
+
+         Clerk of the House of Representatives • Legislative Resource Center • 135 Cannon building • Washington, DC 20515
+
+
+f iler  information
+name:              Hon. Steve Cohen
+Status:            Member
+State/District:    TN09
+
+
+t ranSactionS
+
+iD        owner     asset                                      transaction      Date          notification     amount
+                                                               type                           Date
+
+                    TENN HSg DEV agY RSDL FINg                 P                06/30/2016    07/15/2016       $15,001 - $50,000
+                    PRog REV NoN-aMT NoN-aCE-
+                    ISSUE 1b REVENUE boNDS
+
+                    FILINg STaTUS: New
+                    SUbHoLDINg oF: Stephens advantage account
+
+
+a SSet   c laSS  DetailS
+
+     Stephens advantage account
+     LoCaTIoN: US
+
+
+initial   Public    o  fferingS
+
+nmlkj Yes nmlkji No
+
+c ertification      anD   Signature
+
+gfedcb I CERTIFY that the statements I have made on the attached Periodic Transaction Report are true, complete, and correct to the
+best of my knowledge and belief.
+
+Digitally Signed: Hon. Steve Cohen , 07/15/2016
