@@ -14,7 +14,7 @@ import httpx
 
 OUT = Path("probe")
 OUT.mkdir(exist_ok=True)
-UA = {"User-Agent": "DisclosureTracker research (github.com/sarahakhavan/disclosure-tracker)"}
+UA = {"User-Agent": "SmartMoneyFollows research@smartmoneyfollows.dev"}
 log = {}
 
 
@@ -103,13 +103,17 @@ def thirteenf(c):
             url = f"https://www.sec.gov/Archives/edgar/data/{cik}/{acc}/"
             r = c.get(url)
             files = re.findall(r'href="([^"]+)"', r.text)
-            info.append({"period": rec["reportDate"][i], "url": url, "status": r.status_code,
-                         "files": [f for f in files if "/Archives/" in f or f.endswith(".xml")][:20]})
+            xmls = [f for f in files if f.lower().endswith(".xml")]
+            entry = {"period": rec["reportDate"][i], "url": url, "status": r.status_code, "xml": xmls[:10]}
+            for x in xmls[:3]:
+                xu = x if x.startswith("http") else ("https://www.sec.gov" + x if x.startswith("/") else url + x)
+                entry.setdefault("heads", {})[x] = c.get(xu).text[:1200]
+            info.append(entry)
         log[f"13f_{name}"] = info
 
 
 with httpx.Client(headers=UA, timeout=60, follow_redirects=True) as c:
-    for fn in (house, senate, thirteenf):
+    for fn in ([thirteenf] if '--13f' in sys.argv else (house, senate, thirteenf)):
         try:
             fn(c)
         except Exception as e:

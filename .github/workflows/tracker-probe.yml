@@ -4,6 +4,10 @@ name: Tracker source probe
 # `tracker-probe` branch for parser development.
 on:
   workflow_dispatch:
+    inputs:
+      args:
+        description: 'Extra probe args (e.g. --13f)'
+        default: ''
 
 permissions:
   contents: write
@@ -18,7 +22,7 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install httpx==0.28.1 pypdf==5.9.0
-      - run: python scripts/tracker_probe.py
+      - run: python scripts/tracker_probe.py ${{ github.event.inputs.args }}
       - name: Publish probe output
         run: |
           set -euo pipefail
