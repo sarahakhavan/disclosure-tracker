@@ -43,8 +43,17 @@ def collapse_decisions(trades: pd.DataFrame) -> pd.DataFrame:
     if trades.empty:
         return trades.assign(n_lots=pd.Series(dtype=int))
     t = trades.copy()
-    t["trade_date"] = pd.to_datetime(t["trade_date"])
-    t["disclosure_date"] = pd.to_datetime(t["disclosure_date"])
+    t["trade_date"] = pd.to_datetime(t["trade_date"], errors="coerce")
+    t["disclosure_date"] = pd.to_datetime(t["disclosure_date"], errors="coerce")
+    # Hand-typed filings contain impossible dates (e.g. year 3031). Drop
+    # trades dated before 2008, in the future, or after their own filing.
+    today = pd.Timestamp.today().normalize() + pd.Timedelta(days=1)
+    ok = t["trade_date"].between(pd.Timestamp("2008-01-01"), today)
+    ok &= t["disclosure_date"].isna() | (t["trade_date"] <= t["disclosure_date"] + pd.Timedelta(days=1))
+    t.loc[t["disclosure_date"] > today, "disclosure_date"] = pd.NaT
+    t = t[ok]
+    if t.empty:
+        return t.assign(n_lots=pd.Series(dtype=int))
     keys = ["actor_id", "ticker", "direction", "trade_date"]
     agg = t.groupby(keys, as_index=False).agg(
         actor=("actor", "first"),

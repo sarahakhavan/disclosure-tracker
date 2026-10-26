@@ -315,3 +315,16 @@ def test_house_legacy_one_line_filings():
     assert [(r["ticker"], r["owner"], r["tx"]) for r in sp] == [("MGRC", "spouse", "S"), ("V", "spouse", "S")]
     twc = parse_ptr_text((fx / "legacy_20005128.txt").read_text())
     assert twc[0]["notified"] == date(2016, 6, 7) and twc[0]["asset"] == "Time Warner Cable Inc"
+
+
+def test_collapse_drops_impossible_dates():
+    t = pd.DataFrame(
+        [
+            _trade(1, "h:A", "UP", "buy", "2023-02-01", "2023-03-01"),
+            {**_trade(2, "h:A", "UP", "buy", "2023-02-01", "2023-03-01"), "trade_date": date(3031, 4, 30)},
+            _trade(3, "h:A", "UP", "buy", "2023-05-01", "2023-03-01"),  # traded after filing
+            _trade(4, "h:A", "UP", "buy", "2001-05-01", "2001-06-01"),
+        ]
+    )
+    d = tr.collapse_decisions(t)
+    assert len(d) == 1 and d.iloc[0].trade_date == pd.Timestamp("2023-02-01")
