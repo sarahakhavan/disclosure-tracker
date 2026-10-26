@@ -1,0 +1,31 @@
+name: Tracker source probe
+
+# Manual only. Captures raw samples from House/Senate/SEC sources onto the
+# `tracker-probe` branch for parser development.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install httpx==0.28.1 pypdf==5.9.0
+      - run: python scripts/tracker_probe.py
+      - name: Publish probe output
+        run: |
+          set -euo pipefail
+          cd probe
+          git init -q -b tracker-probe
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -q -m "Probe $(date -u +%FT%TZ)"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" tracker-probe
