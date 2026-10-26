@@ -1,4 +1,4 @@
-.PHONY: init-db run-once run-daemon run-api run-dashboard run-slack-bot test backtest install model-status
+.PHONY: tracker tracker-page init-db run-once run-daemon run-api run-dashboard run-slack-bot test backtest install model-status
 
 install:
 	pip install -r requirements.txt
@@ -32,3 +32,9 @@ validate:
 
 model-status:
 	python scripts/model_status_report.py
+
+tracker:
+	python -m src.tracker all
+
+tracker-page:
+	python scripts/build_tracker_page.py

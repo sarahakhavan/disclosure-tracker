@@ -420,6 +420,10 @@ app.add_middleware(
 
 # --- Endpoints ---
 
+from src.tracker.api import build_router as _build_tracker_router  # noqa: E402
+
+app.include_router(_build_tracker_router(require_admin))
+
 
 @app.get("/")
 def root():

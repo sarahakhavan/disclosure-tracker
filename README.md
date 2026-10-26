@@ -1,3 +1,39 @@
+# Disclosure Tracker
+
+Fork of [ericnc09/financial-planner](https://github.com/ericnc09/financial-planner)
+that adds a **people-first tracker** on top of the original research system:
+
+- **Per-person track records.** Every congressional trade (Capitol Trades) and
+  every 13F quarter-over-quarter change for tracked funds (Berkshire Hathaway,
+  Pershing Square, Scion, Bridgewater, Renaissance, Tiger Global, Appaloosa,
+  Third Point) is priced against SPY at 1, 3, 6 and 12 months, both from the
+  trade date and from the day the filing became public. Scores (0–100, 50 =
+  matched the market) use the followable entry, shrink small samples toward
+  the market, and need at least 8 matured trades.
+- **Follow list.** `config/follow_list.json` (Pelosi, Buffett, Ackman, Burry,
+  Tepper by default). The report page lets each viewer star their own.
+- **Clusters.** Flags stocks that several people bought (or sold) within a
+  rolling window; the page re-clusters live with your own window, minimum and
+  follow list.
+- **Live report page.** `.github/workflows/disclosure-tracker.yml` runs daily,
+  backfills/updates data, and publishes `smart_money_report.json` to the
+  `tracker-data` branch. `scripts/build_tracker_page.py` turns it into one
+  self-contained HTML page.
+- Track records also feed the original pipeline's signal scorer: a person's
+  record nudges their reputation by up to ±0.25.
+
+```bash
+python -m src.tracker all            # fetch/update everything, write the report
+python scripts/build_tracker_page.py # build reports/web/disclosure_tracker.html
+uvicorn src.api.api:app              # /api/tracker/actors, /clusters, /follow-list
+```
+
+Research tool, not investment advice. See the page's "Method & limits" tab for
+what the data can and cannot show (disclosure lag, value ranges, option
+trades, 13F survivorship).
+
+---
+
 # finAlyse — explainable equity research
 
 An interactive research prototype exploring public trading disclosures, saved

@@ -1,4 +1,6 @@
+import json
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import structlog
 
@@ -17,6 +19,35 @@ class SignalScorer:
         "disclosure_timing": 0.15,
         "consensus": 0.15,
     }
+
+    TRACK_RECORD_PATH = Path("reports/smart_money_report.json")
+
+    def __init__(self, track_record_path: Path | str | None = None):
+        # {lower-cased actor name: 0-100 track-record score} from the tracker
+        # report, when one has been built. Missing file = old behaviour.
+        self._track_scores: dict[str, float] = {}
+        path = Path(track_record_path) if track_record_path else self.TRACK_RECORD_PATH
+        try:
+            report = json.loads(path.read_text())
+            self._track_scores = {
+                a["name"].lower(): a["score"]
+                for a in report.get("actors", [])
+                if a.get("score") is not None
+            }
+            logger.info("signal_scorer.track_records_loaded", n=len(self._track_scores))
+        except (OSError, ValueError, KeyError, TypeError):
+            pass
+
+    def _track_score_for(self, actor: str) -> float | None:
+        name = actor.lower()
+        if name in self._track_scores:
+            return self._track_scores[name]
+        # 13F actors: pipeline uses SEC entity names ("BERKSHIRE HATHAWAY INC"),
+        # the tracker uses short labels ("Berkshire Hathaway").
+        for label, score in self._track_scores.items():
+            if len(label) >= 6 and (label in name or name in label):
+                return score
+        return None
 
     def score(
         self,
@@ -67,7 +98,11 @@ class SignalScorer:
             for kw in ["speaker", "leader", "chair", "whip"]
         ):
             base = min(1.0, base + 0.15)
-        return base
+        # Personal track record (if the tracker has scored this person)
+        # nudges reputation by up to ±0.25 around the role-based base.
+        from src.tracker.track_record import reputation_for
+
+        return reputation_for(self._track_score_for(actor), base)
 
     def _trade_size(
         self,

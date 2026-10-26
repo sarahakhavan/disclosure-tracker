@@ -1,0 +1,10 @@
+{
+  "_comment": "People to follow. Each entry matches tracker actors by case-insensitive substring of the name (match) or exact actor_id (id). Edit freely; the report page also lets each viewer star their own.",
+  "follow": [
+    {"label": "Nancy Pelosi", "match": "Nancy Pelosi"},
+    {"label": "Warren Buffett (Berkshire Hathaway)", "match": "Berkshire Hathaway"},
+    {"label": "Bill Ackman (Pershing Square)", "match": "Pershing Square"},
+    {"label": "Michael Burry (Scion)", "match": "Scion Asset Management"},
+    {"label": "David Tepper (Appaloosa)", "match": "Appaloosa"}
+  ]
+}

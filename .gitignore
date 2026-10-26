@@ -17,3 +17,7 @@ dashboard/dist/
 reports/cache/
 .pytest_cache/
 .venv*/
+
+# Tracker outputs (published to the tracker-data branch by CI)
+reports/smart_money_report.json
+reports/web/disclosure_tracker.html
