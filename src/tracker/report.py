@@ -6,6 +6,7 @@ in a compact columnar shape so a decade of trades fits in a few MB.
 from __future__ import annotations
 
 import math
+import re
 from datetime import datetime, timezone
 
 import numpy as np
@@ -47,6 +48,27 @@ def _d(x):
     if x is None or (isinstance(x, float) and math.isnan(x)) or pd.isna(x):
         return None
     return pd.Timestamp(x).strftime("%Y-%m-%d")
+
+
+def clean_issuer(name: str | None) -> str | None:
+    if not name:
+        return None
+    n = re.sub(r"\([A-Z0-9.\-]{1,7}\)|\[[A-Z]{2}\]", "", str(name))
+    n = re.sub(r"\s*-\s*(Class [A-Z] )?(Common|Ordinary|Capital) (Stock|Shares).*$", "", n, flags=re.I)
+    n = re.sub(r"\s+", " ", n).strip(" -,")
+    return n[:60] or None
+
+
+def _issuer_names(decisions: pd.DataFrame) -> dict[str, str]:
+    """Longest cleaned name per ticker: PDF rows sometimes keep only a fragment."""
+    if decisions.empty:
+        return {}
+    out: dict[str, str] = {}
+    for t, names in decisions.dropna(subset=["issuer"]).groupby("ticker")["issuer"]:
+        cleaned = [c for c in (clean_issuer(n) for n in names.unique()) if c]
+        if cleaned:
+            out[t] = max(cleaned, key=len)
+    return out
 
 
 def load_trades(session_factory) -> pd.DataFrame:
@@ -103,11 +125,7 @@ def build_report(trades: pd.DataFrame, prices: pd.DataFrame, follow_entries: lis
     actor_idx = {a: i for i, a in enumerate(actor_ids)}
     tickers = sorted(decisions["ticker"].unique().tolist()) if not decisions.empty else []
     ticker_idx = {t: i for i, t in enumerate(tickers)}
-    issuers = (
-        decisions.dropna(subset=["issuer"]).groupby("ticker")["issuer"].last().to_dict()
-        if not decisions.empty
-        else {}
-    )
+    issuers = _issuer_names(decisions)
 
     followed = resolve_followed(
         follow_entries, dict(zip(actors["actor_id"], actors["actor"])) if not actors.empty else {}

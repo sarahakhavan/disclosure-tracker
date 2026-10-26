@@ -338,3 +338,12 @@ def test_nonpositive_or_penny_prices_are_not_scored():
                       _trade(2, "h:A", "NEG", "sell", "2023-01-03", "2023-01-04")])
     d = tr.compute_decision_returns(tr.collapse_decisions(t), px)
     assert d["disclosure_1m"].isna().all() and not d["priced"].any()
+
+
+def test_issuer_names_cleaned_and_longest_kept():
+    from src.tracker.report import _issuer_names
+
+    d = pd.DataFrame({"ticker": ["TSM", "TSM", "NVDA"], "issuer": [
+        "Manufacturing Company Ltd. (TSM)", "Taiwan Semiconductor Manufacturing Company Ltd. (TSM)",
+        "NVIDIA Corporation - Common Stock (NVDA)"]})
+    assert _issuer_names(d) == {"TSM": "Taiwan Semiconductor Manufacturing Company Ltd.", "NVDA": "NVIDIA Corporation"}
