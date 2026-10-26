@@ -23,25 +23,29 @@ def save(name, data):
     p.write_bytes(data if isinstance(data, bytes) else data.encode())
 
 
+HOUSE_YEAR = next((a.split("=")[1] for a in sys.argv if a.startswith("--house-year=")), "2025")
+
+
 def house(c):
-    r = c.get("https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025FD.zip")
+    year = HOUSE_YEAR
+    r = c.get(f"https://disclosures-clerk.house.gov/public_disc/financial-pdfs/{year}FD.zip")
     log["house_zip"] = r.status_code
     z = zipfile.ZipFile(io.BytesIO(r.content))
     log["house_zip_files"] = z.namelist()
     xml = next(n for n in z.namelist() if n.lower().endswith(".xml"))
     text = z.read(xml).decode("utf-8", "replace")
-    save("house_2025FD_head.xml", text[:6000])
+    save(f"house_{year}FD_head.xml", text[:6000])
     members = re.findall(r"<Member>(.*?)</Member>", text, re.S)
     ptrs = [m for m in members if "<FilingType>P</FilingType>" in m]
     log["house_members"] = len(members)
     log["house_ptrs"] = len(ptrs)
     pel = [m for m in ptrs if "Pelosi" in m]
-    picks = pel[-2:] + ptrs[100:102] + ptrs[-2:]
+    picks = pel[-3:] + ptrs[100:103] + ptrs[300:302]
     from pypdf import PdfReader
 
     for i, m in enumerate(picks):
         doc = re.search(r"<DocID>(\d+)</DocID>", m).group(1)
-        url = f"https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2025/{doc}.pdf"
+        url = f"https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/{year}/{doc}.pdf"
         pr = c.get(url)
         log[f"house_pdf_{i}"] = {"url": url, "status": pr.status_code, "bytes": len(pr.content), "member": re.sub(r"\s+", " ", m)[:300]}
         save(f"house_ptr_{i}_{doc}.pdf", pr.content)
@@ -113,7 +117,7 @@ def thirteenf(c):
 
 
 with httpx.Client(headers=UA, timeout=60, follow_redirects=True) as c:
-    for fn in ([thirteenf] if '--13f' in sys.argv else (house, senate, thirteenf)):
+    for fn in ([thirteenf] if '--13f' in sys.argv else [house] if '--house-only' in sys.argv else (house, senate, thirteenf)):
         try:
             fn(c)
         except Exception as e:

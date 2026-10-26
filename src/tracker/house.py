@@ -49,7 +49,7 @@ _TX_RE = re.compile(
 )
 _TAG_RE = re.compile(r"\[([A-Z]{2})\]")
 _TICKER_RE = re.compile(r"\(([A-Z][A-Z0-9.\-]{0,6})\)")
-_AMT_RE = re.compile(r"\$([\d,]+)")
+_AMT_RE = re.compile(r"\$(\d[\d,]*)")
 _PAGE_CONT_RE = re.compile(r"^(?P<asset>.*\[[A-Z]{2}\])\s*(?P<amt>\$[\d,]+)\s*$")
 # Garbled section labels pypdf produces for "Filing Status:", "Description:" …
 _LABEL_RE = re.compile(r"^[A-Z](?:\s{2,}[A-Z]?)+\s*:")
@@ -247,8 +247,18 @@ class HouseClient:
                 if not text.strip() or "Transaction" not in text:
                     yd["no_text"] += 1
                     continue
-                rows = parse_ptr_text(text)
+                try:
+                    rows = parse_ptr_text(text)
+                except Exception as e:  # one odd filing must not stop the run
+                    yd["parse_errors"] = yd.get("parse_errors", 0) + 1
+                    if len(self.diag.setdefault("parse_error_samples", [])) < 5:
+                        self.diag["parse_error_samples"].append(f"{mem['doc']}: {e!r}"[:200])
+                    continue
                 yd["rows"] += len(rows)
+                for r_ in rows:
+                    code = r_["asset_code"] or "none"
+                    yd.setdefault("codes", {})[code] = yd.setdefault("codes", {}).get(code, 0) + 1
+                yd["with_ticker"] = yd.get("with_ticker", 0) + sum(1 for r_ in rows if r_["ticker"])
                 actor_id, name, group = self._actor(mem)
                 for k, row in enumerate(rows):
                     kind = KEEP_ASSET_TYPES.get(row["asset_code"] or "")
