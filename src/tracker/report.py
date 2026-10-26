@@ -23,7 +23,8 @@ RECENT_YEARS_FOR_CHARTS = 3
 
 CAVEATS = [
     "Disclosures arrive late: congressional trades up to 45 days after the trade, 13F holdings up to 45 days after quarter-end. Scores use the price after disclosure, which is what a follower could actually get.",
-    "Congressional amounts are reported in ranges; values shown are estimates. Spouse and family trades are attributed to the member.",
+    "Congressional amounts are reported in ranges; values shown are the midpoint. Spouse, joint and dependent-child trades are attributed to the member.",
+    "House members only. Senate filings are not included, and scanned paper House filings can't be read.",
     "Option trades are measured on the underlying stock, so they understate the leverage of the actual position.",
     "13F filings show long US positions only, at quarter-end. Positions in companies that have since been renamed or delisted can't be matched to a ticker and are left out, which flatters 13F track records.",
     "Delisted tickers without price history are excluded from returns.",
@@ -227,6 +228,7 @@ def build_report(trades: pd.DataFrame, prices: pd.DataFrame, follow_entries: lis
             },
             "caveats": CAVEATS,
             "sample": False,
+            "house_from": 2014,
         },
         "actors": actor_rows,
         "tickers": tickers,

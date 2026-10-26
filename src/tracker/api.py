@@ -47,7 +47,7 @@ def build_router(require_admin) -> APIRouter:
             {k: v for k, v in a.items() if k != "stats"} | {"followed": a["id"] in fol}
             for a in r["actors"]
             if (not followed_only or a["id"] in fol)
-            and (source is None or a["source"] == source)
+            and (source is None or (a["source"] == "13f") == (source == "13f"))
             and a["n"] >= min_trades
         ]
         return {"meta": r["meta"], "actors": rows}

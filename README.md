@@ -3,7 +3,8 @@
 Fork of [ericnc09/financial-planner](https://github.com/ericnc09/financial-planner)
 that adds a **people-first tracker** on top of the original research system:
 
-- **Per-person track records.** Every congressional trade (Capitol Trades) and
+- **Per-person track records.** Every House member's e-filed trade (official
+  Periodic Transaction Reports from the House Clerk, 2014 onward) and
   every 13F quarter-over-quarter change for tracked funds (Berkshire Hathaway,
   Pershing Square, Scion, Bridgewater, Renaissance, Tiger Global, Appaloosa,
   Third Point) is priced against SPY at 1, 3, 6 and 12 months, both from the

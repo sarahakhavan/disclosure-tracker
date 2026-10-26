@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       max_pages:
-        description: 'Max Capitol Trades pages to walk (first run backfills everything)'
+        description: 'Max Capitol Trades pages (only used with --with-capitoltrades)'
         default: '600'
 
 permissions:
@@ -48,8 +48,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: tracker.db
-          key: tracker-db-v2-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: tracker-db-v2-${{ runner.os }}-
+          key: tracker-db-v3-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: tracker-db-v3-${{ runner.os }}-
 
       # Previous report is needed so alerts only mention what's new
       - name: Fetch previous report
@@ -70,7 +70,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: tracker.db
-          key: tracker-db-v2-${{ runner.os }}-${{ github.run_id }}
+          key: tracker-db-v3-${{ runner.os }}-${{ github.run_id }}
 
       - name: Publish report to tracker-data branch
         run: |

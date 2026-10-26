@@ -155,7 +155,7 @@ tbody tr[aria-selected="true"] { background: var(--accent-soft); box-shadow: ins
   <div class="wrap">
     <div class="brand">
       <h1>Disclosure Tracker</h1>
-      <p>Congressional trades and 13F filings, scored on what followers could actually have earned.</p>
+      <p>House trade disclosures and fund 13F filings, scored on what followers could actually have earned.</p>
     </div>
     <div class="fresh" id="fresh"></div>
     <nav class="tabs" aria-label="Views">
@@ -305,8 +305,10 @@ tbody tr[aria-selected="true"] { background: var(--accent-soft); box-shadow: ins
     if ((a.name + " " + (a.group || "")).toLowerCase().includes(q)) return true;
     return (byActor.get(actorIndex.get(a.id)) || []).some((d) => d.t.toLowerCase() === q);
   }
+  // "Congress" covers every legislative source (House PTRs, Capitol Trades)
+  const srcOk = (a) => S.src === "all" || (S.src === "13f" ? a.source === "13f" : a.source !== "13f");
   function actorVisible(a) {
-    return (S.src === "all" || a.source === S.src) && (!S.followed || follow.has(a.id)) && matchesQ(a);
+    return srcOk(a) && (!S.followed || follow.has(a.id)) && matchesQ(a);
   }
   function toggleFollow(id) {
     follow.has(id) ? follow.delete(id) : follow.add(id);
@@ -506,7 +508,7 @@ tbody tr[aria-selected="true"] { background: var(--accent-soft); box-shadow: ins
     const want = S.dir === "buy" ? 1 : -1;
     const out = [];
     for (const [t, list] of byTicker) {
-      const ds = list.filter((d) => d.dir === want && d.tdT >= since && (!S.followed || follow.has(A[d.a].id)) && (S.src === "all" || A[d.a].source === S.src)).sort((x, y) => x.tdT - y.tdT);
+      const ds = list.filter((d) => d.dir === want && d.tdT >= since && (!S.followed || follow.has(A[d.a].id)) && srcOk(A[d.a])).sort((x, y) => x.tdT - y.tdT);
       let i = 0;
       while (i < ds.length) {
         const start = ds[i].tdT, mem = [];
@@ -567,7 +569,7 @@ tbody tr[aria-selected="true"] { background: var(--accent-soft); box-shadow: ins
     const q = S.q.toLowerCase();
     const list = decisions.filter((d) => {
       const a = A[d.a];
-      return (S.src === "all" || a.source === S.src) && (!S.followed || follow.has(a.id)) && (!q || d.t.toLowerCase() === q || a.name.toLowerCase().includes(q));
+      return srcOk(a) && (!S.followed || follow.has(a.id)) && (!q || d.t.toLowerCase() === q || a.name.toLowerCase().includes(q));
     }).sort((x, y) => (y.ddT || y.tdT) - (x.ddT || x.tdT)).slice(0, 300);
     $("#trade-count").textContent = `${list.length === 300 ? "300 newest" : list.length} filings`;
     $("#trades-table").innerHTML = list.length ? `<thead><tr><th>Filed</th><th>Traded</th><th>Who</th><th>Ticker</th><th>Side</th><th class="r">Value</th><th class="r">Lag</th></tr></thead><tbody>${list.map((d) => {
@@ -595,7 +597,7 @@ tbody tr[aria-selected="true"] { background: var(--accent-soft); box-shadow: ins
       <h2>Limits of this data</h2>
       <ul>${R.meta.caveats.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>
       <h2>Sources</h2>
-      <p>Congressional trades from Capitol Trades (House and Senate Periodic Transaction Reports). Fund holdings from SEC EDGAR 13F-HR filings for: ${esc(A.filter((a) => a.source === "13f").map((a) => a.name).join(", ") || "none yet")}. Prices from Yahoo Finance, adjusted for splits and dividends.</p>
+      <p>Congressional trades from the House Clerk’s Periodic Transaction Reports (official e-filed PDFs, ${esc(R.meta.house_from || "2014")} onward; scanned paper filings can’t be read and are skipped). Senate filings aren’t included yet: the Senate’s disclosure site blocks automated access from cloud servers. Fund holdings from SEC EDGAR 13F-HR filings for: ${esc(A.filter((a) => a.source === "13f").map((a) => a.name).join(", ") || "none yet")}. Prices from Yahoo Finance, adjusted for splits and dividends.</p>
       <p class="note">Research tool, not investment advice. Report built ${esc(R.meta.generated_at)} from ${R.meta.n_trades.toLocaleString()} filed transactions (${R.meta.n_decisions.toLocaleString()} decisions, ${R.meta.n_priced.toLocaleString()} with price history).</p>`;
   }
 

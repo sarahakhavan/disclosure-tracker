@@ -267,3 +267,35 @@ async def test_congress_falls_back_to_html_when_json_unparseable(monkeypatch):
     await c.close()
     assert [r.ticker for r in recs] == ["AAA"]
     assert c.diag["mode"] == "html" and c.diag["bff_unparsed"]
+
+
+def test_house_ptr_parser_on_real_filings():
+    from pathlib import Path
+
+    from src.tracker.house import parse_amount, parse_ptr_text
+
+    fx = Path(__file__).parent / "fixtures" / "house_ptr"
+    pel = parse_ptr_text((fx / "house_ptr_0_20030630.txt").read_text())
+    assert [(r["owner"], r["ticker"], r["asset_code"], r["tx"]) for r in pel] == [
+        ("spouse", "AVGO", "ST", "P"),
+        ("spouse", None, "OT", "S"),
+    ]
+    assert pel[0]["trade_date"] == date(2025, 6, 20)
+    assert (pel[0]["amount_low"], pel[0]["amount_high"]) == (1000001, 5000000)
+    aapl = parse_ptr_text((fx / "house_ptr_1_20033337.txt").read_text())
+    assert [(r["ticker"], r["tx"]) for r in aapl] == [("AAPL", "S (partial)")]
+    bonds = parse_ptr_text((fx / "house_ptr_3_20030541.txt").read_text())
+    assert len(bonds) >= 15 and all(r["asset_code"] == "GS" and r["owner"] == "joint" for r in bonds)
+    tbill = parse_ptr_text((fx / "house_ptr_4_20030933.txt").read_text())
+    assert tbill[0]["owner"] == "self" and tbill[0]["asset"].startswith("Treasury Bill")
+    assert parse_amount("Over $50,000,000") == (50000000, 50000000)
+
+
+def test_13f_parser_handles_prefixed_attributes():
+    from src.clients.edgar_13f import Edgar13FClient
+
+    x = ('<?xml version="1.0" ?><informationTable xsi:schemaLocation="a b" xmlns="http://x" '
+         'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><infoTable><nameOfIssuer>ALPHABET INC'
+         '</nameOfIssuer><cusip>02079K305</cusip><value>9</value><shrsOrPrnAmt><sshPrnamt>100</sshPrnamt>'
+         '</shrsOrPrnAmt></infoTable></informationTable>')
+    assert Edgar13FClient._parse_info_table(x)["02079K305"]["shares"] == 100

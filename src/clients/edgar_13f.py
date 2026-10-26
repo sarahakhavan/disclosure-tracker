@@ -253,6 +253,9 @@ class Edgar13FClient:
         try:
             # Strip namespaces for resilient parsing across filers
             xml_clean = re.sub(r'xmlns(:\w+)?="[^"]*"', "", xml_text)
+            # Prefixed attributes (xsi:schemaLocation=…) would be unbound once
+            # the namespace declarations are gone, so drop them too.
+            xml_clean = re.sub(r'\s\w+:\w+="[^"]*"', "", xml_clean)
             xml_clean = re.sub(r"<(/?)\w+:", r"<\1", xml_clean)
             root = ET.fromstring(xml_clean)
         except ET.ParseError:

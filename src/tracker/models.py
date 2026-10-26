@@ -31,7 +31,7 @@ class TrackedTrade(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     # Stable id from the source (Capitol Trades txId, or fund|period|cusip|action)
     source_id = Column(String(120), nullable=False)
-    source = Column(String(20), nullable=False)  # "congress" | "13f"
+    source = Column(String(20), nullable=False)  # "house" | "congress" (Capitol Trades) | "13f"
     actor_id = Column(String(40), nullable=False, index=True)
     actor = Column(String(200), nullable=False)
     actor_group = Column(String(60), nullable=True)  # party/chamber or "Fund"
@@ -71,6 +71,18 @@ class PriceFetchStatus(Base):
     n_bars = Column(Integer, nullable=False, default=0)
 
 
+class SeenDocument(Base):
+    """Source documents already processed (incl. ones that yielded no trades,
+    such as scanned paper filings), so daily runs only fetch new ones."""
+
+    __tablename__ = "tracker_seen_docs"
+
+    source = Column(String(20), primary_key=True)
+    doc_id = Column(String(60), primary_key=True)
+    n_rows = Column(Integer, nullable=False, default=0)
+    seen_at = Column(DateTime, default=datetime.utcnow)
+
+
 def create_tables(database_url: str):
     engine = get_engine(database_url)
     Base.metadata.create_all(
@@ -79,6 +91,7 @@ def create_tables(database_url: str):
             TrackedTrade.__table__,
             PriceBar.__table__,
             PriceFetchStatus.__table__,
+            SeenDocument.__table__,
         ],
     )
     return engine

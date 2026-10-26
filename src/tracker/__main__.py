@@ -1,7 +1,7 @@
 """
 Tracker CLI.
 
-    python -m src.tracker update            # fetch new congress + 13F trades and prices
+    python -m src.tracker update            # fetch new House PTR + 13F trades and prices
     python -m src.tracker report            # write reports/smart_money_report.json
     python -m src.tracker alerts            # Slack: new followed trades + new clusters
     python -m src.tracker all               # update, then alerts, then report
@@ -23,7 +23,8 @@ from sqlalchemy import func
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from src.models.database import get_session_factory
-from src.tracker.models import TrackedTrade, create_tables
+from src.tracker.house import HouseClient
+from src.tracker.models import SeenDocument, TrackedTrade, create_tables
 from src.tracker.prices import update_prices
 from src.tracker.report import build_report_from_db, decision_frame
 from src.tracker.sources import (
@@ -69,11 +70,42 @@ def _store(sf, records) -> int:
 DIAG_PATH = Path("reports/tracker_run.json")
 
 
+def _mark_seen(sf, source: str, docs: dict[str, int]) -> None:
+    if not docs:
+        return
+    s = sf()
+    try:
+        rows = [{"source": source, "doc_id": d, "n_rows": n} for d, n in docs.items()]
+        for i in range(0, len(rows), 400):
+            stmt = sqlite_insert(SeenDocument).values(rows[i : i + 400])
+            s.execute(stmt.on_conflict_do_nothing(index_elements=["source", "doc_id"]))
+        s.commit()
+    finally:
+        s.close()
+
+
 async def cmd_update(args) -> None:
     """Fetch new data. Writes reports/tracker_run.json with what each source did."""
     sf = _session_factory()
     diag: dict = {"started": datetime.now(timezone.utc).isoformat(timespec="seconds")}
-    if not args.skip_congress:
+    if not args.skip_house:
+        client = HouseClient()
+        try:
+            s = sf()
+            try:
+                seen = {r[0] for r in s.query(SeenDocument.doc_id).filter(SeenDocument.source == "house")}
+            finally:
+                s.close()
+            recs = await client.fetch_history(seen, first_year=args.house_from)
+            stored = _store(sf, recs)
+            _mark_seen(sf, "house", client.processed)
+            diag["house"] = client.diag | {"stored": stored, "docs_processed": len(client.processed)}
+        except Exception as e:
+            diag["house"] = client.diag | {"fatal": repr(e)[:300]}
+        finally:
+            await client.close()
+        logger.info("tracker.house", new=diag["house"].get("new"), stored=diag["house"].get("stored"))
+    if args.with_capitoltrades:
         client = CongressHistoryClient()
         try:
             recs = await client.fetch_history(_known_ids(sf, "congress"), max_pages=args.max_pages)
@@ -177,7 +209,13 @@ def main():
     p.add_argument("command", choices=["update", "report", "alerts", "all"])
     p.add_argument("--out", default=str(DEFAULT_OUT))
     p.add_argument("--max-pages", type=int, default=600)
-    p.add_argument("--skip-congress", action="store_true")
+    p.add_argument("--skip-house", action="store_true")
+    p.add_argument("--house-from", type=int, default=2014, help="first year of House PTRs to backfill")
+    p.add_argument(
+        "--with-capitoltrades",
+        action="store_true",
+        help="also scrape Capitol Trades (blocked from cloud CI; works from a home connection)",
+    )
     p.add_argument("--skip-13f", action="store_true")
     p.add_argument("--skip-prices", action="store_true")
     args = p.parse_args()
