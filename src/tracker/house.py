@@ -45,8 +45,17 @@ OWNERS = {"SP": "spouse", "JT": "joint", "DC": "child"}
 
 _TX_RE = re.compile(
     r"^(?P<pre>.*?)(?P<tx>S \(partial\)|P|S|E)\s?"
-    r"(?P<d1>\d{2}/\d{2}/\d{4})\s?(?P<d2>\d{2}/\d{2}/\d{4})\s*(?P<amt>.*)$"
+    r"(?P<d1>\d{1,2}/\d{1,2}/\d{4})\s?(?P<d2>\d{1,2}/\d{1,2}/\d{4})\s*(?P<amt>.*)$"
 )
+# Pre-2017 e-filings: no [XX] codes, everything on one run-on line, and a
+# small-caps font that scrambles letter case ("apple Inc. (aaPl)").
+_LEGACY_RE = re.compile(
+    r"\((?P<tk>[A-Za-z][A-Za-z.]{0,6})\)\s*"
+    r"(?P<tx>[Ss] \([Pp]artial\)|[PSE])\s*"
+    r"(?P<d1>\d{1,2}/\d{1,2}/\d{4})\s*(?P<d2>\d{1,2}/\d{1,2}/\d{4})\s*"
+    r"(?P<amt>\$\d[\d,]*\s*-\s*\$\d[\d,]*|[Oo]ver \$\d[\d,]*)"
+)
+_LEGACY_OWNER_RE = re.compile(r"(?<![A-Z])(SP|JT|DC)(?=[A-Z][a-z0-9])")
 _TAG_RE = re.compile(r"\[([A-Z]{2})\]")
 _TICKER_RE = re.compile(r"\(([A-Z][A-Z0-9.\-]{0,6})\)")
 _AMT_RE = re.compile(r"\$(\d[\d,]*)")
@@ -72,8 +81,47 @@ def parse_amount(text: str) -> tuple[float | None, float | None]:
     return nums[0], nums[1]
 
 
+def parse_ptr_text_legacy(text: str) -> list[dict]:
+    """Rows from an older one-line e-filing. Only rows with a ticker are found."""
+    flat = re.sub(r"\s+", " ", text)
+    matches = list(_LEGACY_RE.finditer(flat))
+    rows = []
+    for k, m in enumerate(matches):
+        prev_end = matches[k - 1].end() if k else 0
+        head = flat[prev_end : m.start()]
+        low = head.lower()
+        ends = [low.rfind(x) + len(x) for x in ("dateamount", "date amount", ": new", "shares", ":") if x in low]
+        # a description running straight into the next name: "...1/20/17Walt Disney"
+        ends += [m2.end() for m2 in re.finditer(r"\d(?=[A-Z][a-z])", head)]
+        asset = head[max(ends) :] if ends else head
+        owner = None
+        om = list(_LEGACY_OWNER_RE.finditer(asset))
+        if om:
+            owner, asset = OWNERS[om[-1].group(1)], asset[om[-1].end() :]
+        nxt = matches[k + 1].start() if k + 1 < len(matches) else len(flat)
+        desc = flat[m.end() : nxt].lower()
+        lo, hi = parse_amount(m["amt"])
+        tx = "S (partial)" if "partial" in m["tx"].lower() else m["tx"].upper()
+        rows.append(
+            {
+                "owner": owner or "self",
+                "asset": asset.strip()[-120:],
+                "asset_code": "OP" if "option" in desc[:300] else "ST",
+                "ticker": m["tk"].upper(),
+                "tx": tx,
+                "trade_date": _mdY(m["d1"]),
+                "notified": _mdY(m["d2"]),
+                "amount_low": lo,
+                "amount_high": hi,
+            }
+        )
+    return rows
+
+
 def parse_ptr_text(text: str) -> list[dict]:
     """Transaction rows from one PTR's extracted text (all asset types)."""
+    if not _TAG_RE.search(text) and _LEGACY_RE.search(re.sub(r"\s+", " ", text)):
+        return parse_ptr_text_legacy(text)
     lines = [ln.rstrip() for ln in text.splitlines()]
     rows: list[dict] = []
     block: list[str] = []  # candidate asset lines since the last reset

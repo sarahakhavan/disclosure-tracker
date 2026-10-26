@@ -299,3 +299,19 @@ def test_13f_parser_handles_prefixed_attributes():
          '</nameOfIssuer><cusip>02079K305</cusip><value>9</value><shrsOrPrnAmt><sshPrnamt>100</sshPrnamt>'
          '</shrsOrPrnAmt></infoTable></informationTable>')
     assert Edgar13FClient._parse_info_table(x)["02079K305"]["shares"] == 100
+
+
+def test_house_legacy_one_line_filings():
+    from pathlib import Path
+
+    from src.tracker.house import parse_ptr_text
+
+    fx = Path(__file__).parent / "fixtures" / "house_ptr"
+    pel = parse_ptr_text((fx / "legacy_20004596.txt").read_text())
+    assert [(r["ticker"], r["asset_code"], r["tx"], r["owner"]) for r in pel] == [
+        ("AAPL", "OP", "P", "self"), ("DIS", "OP", "P", "self")]
+    assert pel[1]["asset"] == "Walt Disney Company" and pel[1]["amount_high"] == 1000000
+    sp = parse_ptr_text((fx / "legacy_20005689.txt").read_text())
+    assert [(r["ticker"], r["owner"], r["tx"]) for r in sp] == [("MGRC", "spouse", "S"), ("V", "spouse", "S")]
+    twc = parse_ptr_text((fx / "legacy_20005128.txt").read_text())
+    assert twc[0]["notified"] == date(2016, 6, 7) and twc[0]["asset"] == "Time Warner Cable Inc"
