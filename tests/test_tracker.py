@@ -142,10 +142,10 @@ def test_congress_record_parsing():
 
 
 def test_13f_quarter_diff():
-    old = {"A": {"shares": 100, "issuer": "A"}, "B": {"shares": 100, "issuer": "B"},
-           "C": {"shares": 100, "issuer": "C"}, "D": {"shares": 100, "issuer": "D"}}
-    new = {"A": {"shares": 130, "issuer": "A"}, "B": {"shares": 40, "issuer": "B"},
-           "C": {"shares": 100, "issuer": "C"}, "E": {"shares": 10, "issuer": "E"}}
+    old = {"A": {"shares": 100, "value": 100, "issuer": "A"}, "B": {"shares": 100, "value": 100, "issuer": "B"},
+           "C": {"shares": 100, "value": 100, "issuer": "C"}, "D": {"shares": 100, "value": 100, "issuer": "D"}}
+    new = {"A": {"shares": 130, "value": 130, "issuer": "A"}, "B": {"shares": 40, "value": 40, "issuer": "B"},
+           "C": {"shares": 100, "value": 100, "issuer": "C"}, "E": {"shares": 10, "value": 10, "issuer": "E"}}
     got = {(d, a, p["issuer"]) for d, a, p in ThirteenFHistoryClient.diff_quarters(old, new)}
     assert got == {("buy", "added", "A"), ("sell", "cut", "B"), ("sell", "exited", "D"), ("buy", "new_position", "E")}
 
@@ -237,3 +237,33 @@ def test_build_tracker_page_embeds_safe_json(tmp_path):
     data = json.loads(m.group(1))
     assert data["actors"][0]["name"] == "Rep. </script><b>x</b>"
     assert "__REPORT_JSON__" not in html
+
+
+def test_13f_weight_filter_drops_small_positions():
+    old = {"A": {"shares": 100, "value": 990, "issuer": "A"}, "B": {"shares": 100, "value": 10, "issuer": "B"}}
+    new = {"A": {"shares": 100, "value": 990, "issuer": "A"}, "C": {"shares": 5, "value": 2, "issuer": "C"},
+           "D": {"shares": 50, "value": 400, "issuer": "D"}}
+    got = {(d, a, p["issuer"]) for d, a, p in ThirteenFHistoryClient.diff_quarters(old, new, 0.005)}
+    # B was 1% of the old book (kept); C is 0.1% of the new book (dropped)
+    assert got == {("sell", "exited", "B"), ("buy", "new_position", "D")}
+
+
+@pytest.mark.asyncio
+async def test_congress_falls_back_to_html_when_json_unparseable(monkeypatch):
+    c = CongressHistoryClient()
+    good = {"_txId": 1, "_politicianId": "P1", "txType": "buy", "txDate": "2024-01-02",
+            "issuer": {"issuerTicker": "AAA"}, "politician": {"firstName": "A", "lastName": "B"}}
+
+    async def bff(page):
+        c._probe("bff", page, status=200)
+        return [{"unexpected": True}] if page == 1 else []
+
+    async def html(page, page_size=True):
+        return [good] if page == 1 else []
+
+    monkeypatch.setattr(c, "_try_bff", bff)
+    monkeypatch.setattr(c, "_try_html", html)
+    recs = await c.fetch_history(set(), max_pages=3, delay_s=0)
+    await c.close()
+    assert [r.ticker for r in recs] == ["AAA"]
+    assert c.diag["mode"] == "html" and c.diag["bff_unparsed"]

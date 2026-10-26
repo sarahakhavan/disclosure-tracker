@@ -16,7 +16,10 @@ import json
 import os
 from pathlib import Path
 
+from datetime import datetime, timezone
+
 import structlog
+from sqlalchemy import func
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from src.models.database import get_session_factory
@@ -63,29 +66,49 @@ def _store(sf, records) -> int:
     return len(rows)
 
 
+DIAG_PATH = Path("reports/tracker_run.json")
+
+
 async def cmd_update(args) -> None:
+    """Fetch new data. Writes reports/tracker_run.json with what each source did."""
     sf = _session_factory()
+    diag: dict = {"started": datetime.now(timezone.utc).isoformat(timespec="seconds")}
     if not args.skip_congress:
         client = CongressHistoryClient()
         try:
             recs = await client.fetch_history(_known_ids(sf, "congress"), max_pages=args.max_pages)
+            diag["congress"] = client.diag | {"stored": _store(sf, recs)}
+        except Exception as e:
+            diag["congress"] = client.diag | {"fatal": str(e)[:300]}
         finally:
             await client.close()
-        logger.info("tracker.stored", source="congress", n=_store(sf, recs))
+        logger.info("tracker.congress", **{k: v for k, v in diag["congress"].items() if k != "probes"})
     if not args.skip_13f:
         client = ThirteenFHistoryClient()
         try:
             recs = await client.fetch_history(_known_ids(sf, "13f"))
+            diag["13f"] = {"funds": getattr(client, "diag", {}), "stored": _store(sf, recs)}
+        except Exception as e:
+            diag["13f"] = {"funds": getattr(client, "diag", {}), "fatal": str(e)[:300]}
         finally:
             await client.close()
-        logger.info("tracker.stored", source="13f", n=_store(sf, recs))
     if not args.skip_prices:
         s = sf()
         try:
             tickers = {r[0] for r in s.query(TrackedTrade.ticker).distinct()}
         finally:
             s.close()
-        logger.info("tracker.prices.done", bars=update_prices(sf, tickers))
+        diag["prices"] = {"tickers": len(tickers), "bars_written": update_prices(sf, tickers)}
+    s = sf()
+    try:
+        diag["db_totals"] = {
+            src: n for src, n in s.query(TrackedTrade.source, func.count()).group_by(TrackedTrade.source)
+        }
+    finally:
+        s.close()
+    diag["finished"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    DIAG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DIAG_PATH.write_text(json.dumps(diag, indent=2, default=str))
 
 
 def cmd_report(args) -> dict:

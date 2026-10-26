@@ -27,6 +27,10 @@ from src.clients.edgar_13f import (
 
 logger = structlog.get_logger()
 
+# Only positions at least this share of the fund's reported portfolio count.
+# Without it, quant funds (Renaissance: thousands of names a quarter) drown
+# out the concentrated bets people actually mean by "following" a fund.
+MIN_POSITION_WEIGHT = 0.005
 # A position cut by at least this fraction counts as a SELL decision.
 CUT_THRESHOLD = 0.5
 # 13F information tables are machine-readable XML from Q2 2013 onward.
@@ -59,15 +63,71 @@ class TradeRecord:
 
 class CongressHistoryClient(CongressClient):
     PAGE_SIZE = 96
+    BFF_URL = "https://bff.capitoltrades.com/trades"
 
-    async def _fetch_page_sorted(self, page: int) -> list[dict]:
-        url = (
-            f"{self.BASE_URL}?page={page}&pageSize={self.PAGE_SIZE}"
-            "&sortBy=-pubDate"
+    def __init__(self):
+        super().__init__()
+        self.diag: dict = {"mode": None, "probes": []}
+        self._mode: str | None = None  # "bff" (JSON API) or "html" (RSC scrape)
+
+    async def _try_bff(self, page: int) -> list[dict] | None:
+        try:
+            resp = await self._client.get(
+                self.BFF_URL,
+                params={"page": page, "pageSize": 100, "sortBy": "-pubDate"},
+                headers={"Accept": "application/json", "Origin": "https://www.capitoltrades.com"},
+            )
+        except Exception as e:
+            self._probe("bff", page, error=str(e)[:200])
+            return None
+        data = None
+        if resp.status_code == 200:
+            try:
+                body = resp.json()
+                data = body.get("data") if isinstance(body, dict) else None
+            except ValueError:
+                pass
+        self._probe(
+            "bff", page, status=resp.status_code,
+            n=len(data) if isinstance(data, list) else None,
+            sample_keys=sorted(data[0].keys())[:30] if isinstance(data, list) and data else None,
+        )
+        return data if isinstance(data, list) else None
+
+    async def _try_html(self, page: int, page_size: bool = True) -> list[dict]:
+        url = f"{self.BASE_URL}?page={page}" + (
+            f"&pageSize={self.PAGE_SIZE}&sortBy=-pubDate" if page_size else ""
         )
         resp = await self._client.get(url)
+        trades = self._extract_trades_from_rsc(resp.text) if resp.status_code == 200 else []
+        self._probe(
+            "html", page, status=resp.status_code, bytes=len(resp.text),
+            txType_mentions=resp.text.count("txType"), n=len(trades), url=url,
+        )
         resp.raise_for_status()
-        return self._extract_trades_from_rsc(resp.text)
+        return trades
+
+    def _probe(self, kind: str, page: int, **info):
+        if len(self.diag["probes"]) < 12:
+            self.diag["probes"].append({"kind": kind, "page": page, **info})
+
+    async def _fetch_page_sorted(self, page: int) -> list[dict]:
+        """Prefer the JSON API; fall back to scraping the page HTML."""
+        if self.BFF_URL and self._mode in (None, "bff"):
+            data = await self._try_bff(page)
+            if data is not None and (data or self._mode == "bff"):
+                self._mode = self.diag["mode"] = "bff"
+                return data
+        if self._mode is None:
+            trades = await self._try_html(page)
+            if not trades:
+                # Large page sizes may be rejected; retry with the site default
+                trades = await self._try_html(page, page_size=False)
+                if trades:
+                    self.PAGE_SIZE = 0
+            self._mode = self.diag["mode"] = "html" if trades else None
+            return trades
+        return await self._try_html(page, page_size=self.PAGE_SIZE > 0)
 
     @staticmethod
     def to_record(trade: dict) -> TradeRecord | None:
@@ -157,10 +217,22 @@ class CongressHistoryClient(CongressClient):
                 raw = await self._fetch_page_sorted(page)
             except Exception as e:  # network / layout change
                 logger.warning("tracker.congress.page_failed", page=page, error=str(e))
+                self.diag["error"] = f"page {page}: {str(e)[:300]}"
                 break
             if not raw:
                 break
             recs = [r for t in raw if (r := self.to_record(t))]
+            if page == 1 and raw and not recs and self._mode == "bff":
+                # JSON API answered in a shape we can't parse: use the HTML route
+                self.diag["bff_unparsed"] = True
+                self._mode = None
+                self.BFF_URL = ""
+                raw = await self._try_html(1)
+                recs = [r for t in raw if (r := self.to_record(t))]
+                self._mode = self.diag["mode"] = "html" if recs else None
+            if page == 1:
+                self.diag["page1_raw"] = len(raw)
+                self.diag["page1_parsed"] = len(recs)
             new = [r for r in recs if r.source_id not in known_ids]
             out.extend(new)
             if page % 25 == 0:
@@ -168,6 +240,8 @@ class CongressHistoryClient(CongressClient):
             if known_ids and not new and recs:
                 break  # caught up with what we already have
             await asyncio.sleep(delay_s)
+        self.diag["pages"] = page if out or known_ids else self.diag.get("pages", 0)
+        self.diag["new"] = len(out)
         logger.info("tracker.congress.fetched", new=len(out))
         return out
 
@@ -205,20 +279,30 @@ class ThirteenFHistoryClient(Edgar13FClient):
 
     @staticmethod
     def diff_quarters(
-        old: dict[str, dict], new: dict[str, dict]
+        old: dict[str, dict], new: dict[str, dict], min_weight: float = 0.0
     ) -> list[tuple[str, str, dict]]:
-        """Return [(direction, action, position)] for one quarter-over-quarter diff."""
+        """Return [(direction, action, position)] for one quarter-over-quarter diff.
+
+        Buys must weigh ``min_weight`` of the new portfolio, sells of the old one.
+        """
+        tot_new = sum(p["value"] for p in new.values()) or 1.0
+        tot_old = sum(p["value"] for p in old.values()) or 1.0
         events = []
         for cusip, pos in new.items():
             prev = old.get(cusip)
+            big_now = pos["value"] / tot_new >= min_weight
+            big_before = prev is not None and prev["value"] / tot_old >= min_weight
             if prev is None:
-                events.append(("buy", "new_position", pos))
+                if big_now:
+                    events.append(("buy", "new_position", pos))
             elif prev["shares"] > 0 and pos["shares"] / prev["shares"] >= ADD_THRESHOLD:
-                events.append(("buy", "added", pos))
+                if big_now:
+                    events.append(("buy", "added", pos))
             elif prev["shares"] > 0 and pos["shares"] / prev["shares"] <= 1 - CUT_THRESHOLD:
-                events.append(("sell", "cut", pos))
+                if big_before:
+                    events.append(("sell", "cut", pos))
         for cusip, pos in old.items():
-            if cusip not in new:
+            if cusip not in new and pos["value"] / tot_old >= min_weight:
                 events.append(("sell", "exited", pos))
         return events
 
@@ -229,12 +313,16 @@ class ThirteenFHistoryClient(Edgar13FClient):
     ) -> list[TradeRecord]:
         name_map = await self._load_name_map()
         out: list[TradeRecord] = []
+        self.diag = {}
         for fund_label, cik in (funds or TRACKED_FUNDS).items():
+            fd = self.diag[fund_label] = {"cik": cik, "quarters": 0, "parsed": 0, "events": 0, "errors": []}
             try:
                 _, filings = await self._all_13f_filings(cik)
             except Exception as e:
                 logger.warning("tracker.13f.index_failed", fund=fund_label, error=str(e))
+                fd["errors"].append(f"index: {str(e)[:200]}")
                 continue
+            fd["quarters"] = len(filings)
 
             # Incremental runs: once a fund's history is stored, only the last
             # few quarters can contain anything new, so skip re-downloading
@@ -249,19 +337,26 @@ class ThirteenFHistoryClient(Edgar13FClient):
                     holdings = await self._holdings(cik, acc)
                 except Exception as e:
                     logger.warning("tracker.13f.holdings_failed", fund=fund_label, period=period, error=str(e))
+                    if len(fd["errors"]) < 3:
+                        fd["errors"].append(f"{period}: {str(e)[:200]}")
                     holdings = {}
+                if holdings:
+                    fd["parsed"] += 1
                 if not holdings:
                     prev_holdings = None  # can't diff across a gap
                     continue
                 if prev_holdings is not None:
                     scale = 1000.0 if date.fromisoformat(filed) < WHOLE_DOLLAR_SWITCH else 1.0
-                    for direction, action, pos in self.diff_quarters(prev_holdings, holdings):
+                    for direction, action, pos in self.diff_quarters(
+                        prev_holdings, holdings, MIN_POSITION_WEIGHT
+                    ):
                         ticker = name_map.get(_normalize_issuer(pos["issuer"]))
                         if not ticker:
                             continue
                         sid = f"{diff_key}|{pos['cusip']}|{action}"
                         if sid in known_ids:
                             continue
+                        fd["events"] += 1
                         out.append(
                             TradeRecord(
                                 source="13f",

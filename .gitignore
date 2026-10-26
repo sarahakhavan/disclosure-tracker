@@ -20,4 +20,5 @@ reports/cache/
 
 # Tracker outputs (published to the tracker-data branch by CI)
 reports/smart_money_report.json
+reports/tracker_run.json
 reports/web/disclosure_tracker.html
