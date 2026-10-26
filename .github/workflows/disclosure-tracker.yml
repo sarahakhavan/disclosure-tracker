@@ -72,12 +72,15 @@ jobs:
           path: tracker.db
           key: tracker-db-v3-${{ runner.os }}-${{ github.run_id }}
 
+      # Runs even when the update failed, so diagnostics are always visible
       - name: Publish report to tracker-data branch
+        if: always()
         run: |
           set -euo pipefail
           tmp=$(mktemp -d)
-          cp reports/smart_money_report.json "$tmp/"
-          cp reports/tracker_run.json "$tmp/" 2>/dev/null || true
+          for f in smart_money_report.json tracker_run.json tracker_error.txt; do
+            cp "reports/$f" "$tmp/" 2>/dev/null || true
+          done
           cd "$tmp"
           git init -q -b tracker-data
           git config user.name "github-actions[bot]"

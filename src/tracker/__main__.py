@@ -70,6 +70,11 @@ def _store(sf, records) -> int:
 DIAG_PATH = Path("reports/tracker_run.json")
 
 
+def _write_diag(diag: dict) -> None:
+    DIAG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DIAG_PATH.write_text(json.dumps(diag, indent=2, default=str))
+
+
 def _mark_seen(sf, source: str, docs: dict[str, int]) -> None:
     if not docs:
         return
@@ -105,6 +110,7 @@ async def cmd_update(args) -> None:
         finally:
             await client.close()
         logger.info("tracker.house", new=diag["house"].get("new"), stored=diag["house"].get("stored"))
+        _write_diag(diag)
     if args.with_capitoltrades:
         client = CongressHistoryClient()
         try:
@@ -124,6 +130,7 @@ async def cmd_update(args) -> None:
             diag["13f"] = {"funds": getattr(client, "diag", {}), "fatal": str(e)[:300]}
         finally:
             await client.close()
+    _write_diag(diag)
     if not args.skip_prices:
         s = sf()
         try:
@@ -237,4 +244,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        import traceback
+
+        Path("reports").mkdir(exist_ok=True)
+        Path("reports/tracker_error.txt").write_text(traceback.format_exc())
+        raise
