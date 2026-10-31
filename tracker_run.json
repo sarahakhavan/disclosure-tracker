@@ -1,0 +1,172 @@
+{
+  "started": "2026-10-31T11:21:54+00:00",
+  "house": {
+    "years": {
+      "2014": {
+        "ptrs": 708,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2015": {
+        "ptrs": 728,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2016": {
+        "ptrs": 765,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2017": {
+        "ptrs": 801,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2018": {
+        "ptrs": 830,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2019": {
+        "ptrs": 683,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2020": {
+        "ptrs": 733,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2021": {
+        "ptrs": 680,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2022": {
+        "ptrs": 624,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2023": {
+        "ptrs": 460,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2024": {
+        "ptrs": 451,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2025": {
+        "ptrs": 515,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      },
+      "2026": {
+        "ptrs": 447,
+        "new_docs": 0,
+        "no_text": 0,
+        "rows": 0,
+        "kept": 0
+      }
+    },
+    "parties": 10571,
+    "new": 0,
+    "stored": 0,
+    "docs_processed": 0
+  },
+  "13f": {
+    "funds": {
+      "Berkshire Hathaway": {
+        "cik": 1067983,
+        "quarters": 53,
+        "parsed": 3,
+        "events": 0,
+        "errors": []
+      },
+      "Pershing Square Capital": {
+        "cik": 1336528,
+        "quarters": 52,
+        "parsed": 3,
+        "events": 0,
+        "errors": []
+      },
+      "Scion Asset Management": {
+        "cik": 1649339,
+        "quarters": 32,
+        "parsed": 3,
+        "events": 0,
+        "errors": []
+      },
+      "Bridgewater Associates": {
+        "cik": 1350694,
+        "quarters": 53,
+        "parsed": 3,
+        "events": 0,
+        "errors": []
+      },
+      "Renaissance Technologies": {
+        "cik": 1037389,
+        "quarters": 53,
+        "parsed": 3,
+        "events": 0,
+        "errors": []
+      },
+      "Tiger Global Management": {
+        "cik": 1167483,
+        "quarters": 53,
+        "parsed": 3,
+        "events": 0,
+        "errors": []
+      },
+      "Appaloosa Management": {
+        "cik": 1656456,
+        "quarters": 42,
+        "parsed": 3,
+        "events": 0,
+        "errors": []
+      },
+      "Third Point": {
+        "cik": 1040273,
+        "quarters": 53,
+        "parsed": 3,
+        "events": 0,
+        "errors": []
+      }
+    },
+    "stored": 0
+  },
+  "prices": {
+    "tickers": 3118,
+    "bars_written": 86
+  },
+  "db_totals": {
+    "13f": 2192,
+    "house": 29076
+  },
+  "finished": "2026-10-31T11:22:17+00:00"
+}
