@@ -56,7 +56,7 @@ _ACCOUNT_PREFIX_RE = re.compile(r"^.*(?:Account|IRA|Brokerage|Roth|401\(?[kK]\)?
 _OWNER_PREFIX_RE = re.compile(r"^(?:SP|JT|DC)(?=[A-Z][a-z])")
 # Run-together words ("AccountBarnes", "EquitiesANSYS") and the small-caps
 # case scrambling of pre-2017 filings ("sPAmerican", "aDRIndex").
-_SCRAMBLED_RE = re.compile(r"[a-z]{3,}[A-Z]|(?:^|\s)(?![ie][A-Z])[a-z]{1,2}[A-Z]|(?:^|\s)[A-Z]{2,}[a-z]{3,}")
+_SCRAMBLED_RE = re.compile(r"^(?![ie][A-Z])[a-z]|[a-z]{3,}[A-Z]|(?:^|\s)(?![ie][A-Z])[a-z]{1,2}[A-Z]|(?:^|\s)[A-Z]{2,}[a-z]{3,}")
 _JUNK_RE = re.compile(
     r"clerk|represent|periodic|transaction|filing|status|subholding|description|"
     r"\bshares g\b|fedc|mlkj|\bsP\b|\(?\bOT\)|[a-z]{2,}(?:JT|SP|DC)[a-z]",
@@ -311,7 +311,7 @@ def official_ticker_names() -> dict[str, str]:
 
 def _title_case(name: str) -> str:
     """SEC titles are often all caps ("NVIDIA CORP"); soften those."""
-    name = re.sub(r"\s*/[A-Za-z]{2,3}/?\s*$", "", name.strip())  # "… CORP /DE/"
+    name = re.sub(r"\s*[/\\][A-Za-z]{2,3}[/\\]?\s*$", "", name.strip())  # "… CORP /DE/", "\\TX\\"
     if name != name.upper():
         return name
     small = {"OF", "AND", "THE", "&"}
