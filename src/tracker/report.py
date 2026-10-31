@@ -54,6 +54,14 @@ def _d(x):
 # "Thomas C MacArthur IRAJTTaiwan Semiconductor" / "Brokerage AccountNVIDIA Corp"
 _ACCOUNT_PREFIX_RE = re.compile(r"^.*(?:Account|IRA|Brokerage|Roth|401\(?[kK]\)?|Trust)\s*(?=[A-Z])")
 _OWNER_PREFIX_RE = re.compile(r"^(?:SP|JT|DC)(?=[A-Z][a-z])")
+# Run-together words ("AccountBarnes", "EquitiesANSYS") and the small-caps
+# case scrambling of pre-2017 filings ("sPAmerican", "aDRIndex").
+_SCRAMBLED_RE = re.compile(r"[a-z]{3,}[A-Z]|(?:^|\s)(?![ie][A-Z])[a-z]{1,2}[A-Z]|(?:^|\s)[A-Z]{2,}[a-z]{3,}")
+_JUNK_RE = re.compile(
+    r"clerk|represent|periodic|transaction|filing|status|subholding|description|"
+    r"\bshares g\b|fedc|mlkj|\bsP\b|\(?\bOT\)|[a-z]{2,}(?:JT|SP|DC)[a-z]",
+    re.I,
+)
 
 
 def clean_issuer(name: str | None) -> str | None:
@@ -64,7 +72,12 @@ def clean_issuer(name: str | None) -> str | None:
     n = re.sub(r"\([A-Z0-9.\-]{1,7}\)|\[[A-Z]{2}\]", "", n)
     n = re.sub(r"\s*-\s*(Class [A-Z] )?(Common|Ordinary|Capital) (Stock|Shares).*$", "", n, flags=re.I)
     n = re.sub(r"\s+", " ", n).strip(" -,")
-    return n[:60] or None
+    if not n or _JUNK_RE.search(n) or _SCRAMBLED_RE.search(n) or any(
+        len(tok) > 3 and re.search(r"\d", tok) and re.search(r"[a-z]", tok) and re.search(r"[A-Z]", tok)
+        for tok in n.split()
+    ):
+        return None  # header text or account names bled in: show the ticker alone
+    return n[:60]
 
 
 def _issuer_names(decisions: pd.DataFrame) -> dict[str, str]:
@@ -127,7 +140,14 @@ def _weekly(series: pd.Series) -> dict | None:
     return {"start": w.index[0].strftime("%Y-%m-%d"), "closes": closes}
 
 
-def build_report(trades: pd.DataFrame, prices: pd.DataFrame, follow_entries: list[dict]) -> dict:
+def build_report(
+    trades: pd.DataFrame,
+    prices: pd.DataFrame,
+    follow_entries: list[dict],
+    official_names: dict[str, str] | None = None,
+) -> dict:
+    """``official_names``: ticker → company name from the SEC's ticker list,
+    preferred over names parsed out of filings."""
     decisions = tr.collapse_decisions(trades)
     decisions = tr.compute_decision_returns(decisions, prices)
     actors = tr.actor_track_records(decisions)
@@ -136,7 +156,9 @@ def build_report(trades: pd.DataFrame, prices: pd.DataFrame, follow_entries: lis
     actor_idx = {a: i for i, a in enumerate(actor_ids)}
     tickers = sorted(decisions["ticker"].unique().tolist()) if not decisions.empty else []
     ticker_idx = {t: i for i, t in enumerate(tickers)}
-    issuers = _issuer_names(decisions)
+    issuers = _issuer_names(decisions) | {
+        t: n for t, n in (official_names or {}).items() if t in set(decisions["ticker"])
+    } if not decisions.empty else {}
 
     followed = resolve_followed(
         follow_entries, dict(zip(actors["actor_id"], actors["actor"])) if not actors.empty else {}
@@ -269,11 +291,47 @@ def build_report(trades: pd.DataFrame, prices: pd.DataFrame, follow_entries: lis
     }
 
 
+def official_ticker_names() -> dict[str, str]:
+    """Ticker → company name from SEC's company_tickers.json ({} on failure)."""
+    import httpx
+
+    from src.clients.edgar_13f import TICKER_MAP_URL, USER_AGENT
+
+    try:
+        r = httpx.get(TICKER_MAP_URL, headers={"User-Agent": USER_AGENT}, timeout=30)
+        r.raise_for_status()
+        out: dict[str, str] = {}
+        for v in r.json().values():
+            t = str(v["ticker"]).upper().replace("-", ".")
+            out.setdefault(t, _title_case(v["title"]))
+        return out
+    except Exception:
+        return {}
+
+
+def _title_case(name: str) -> str:
+    """SEC titles are often all caps ("NVIDIA CORP"); soften those."""
+    name = re.sub(r"\s*/[A-Za-z]{2,3}/?\s*$", "", name.strip())  # "… CORP /DE/"
+    if name != name.upper():
+        return name
+    small = {"OF", "AND", "THE", "&"}
+    keep = {"ETF", "REIT", "LP", "LLC", "PLC", "NV", "SA", "AG", "SE", "ADR", "II", "III", "USA", "US"}
+    words = []
+    for w in name.split():
+        if w in keep or len(w) <= 3 and not w.isalpha():
+            words.append(w)
+        elif w in small and words:
+            words.append(w.lower())
+        else:
+            words.append(w.capitalize())
+    return " ".join(words)
+
+
 def build_report_from_db(session_factory, follow_path=None) -> dict:
     trades = load_trades(session_factory)
     prices = load_prices(session_factory, set(trades["ticker"]) if not trades.empty else set())
     entries = load_follow_list(follow_path) if follow_path else load_follow_list()
-    return build_report(trades, prices, entries)
+    return build_report(trades, prices, entries, official_ticker_names())
 
 
 def decision_frame(report: dict) -> pd.DataFrame:

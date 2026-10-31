@@ -353,3 +353,29 @@ def test_issuer_names_cleaned_and_longest_kept():
         "Morgan Stanley Smith Barney LLC Brokerage AccountNVIDIA Corp"]})
     names = _issuer_names(d2)
     assert names == {"TSM": "Taiwan Semiconductor Manufacturing Co", "NVDA": "NVIDIA Corp"}
+
+
+def test_clean_issuer_rejects_header_bleed():
+    from src.tracker.report import clean_issuer
+
+    assert clean_issuer("P erIODIC TrANSACTION r ePOrTClerk of the House of Represent") is None
+    assert clean_issuer("sP M81sPAlcoa Inc.") is None
+    assert clean_issuer("Shares g fedcFILINg STATUS: NewSUBHoLDINg oF: Morgan Stanley") is None
+    assert clean_issuer("3M Company") == "3M Company"
+    assert clean_issuer("iShares Core S&P 500 ETF (IVV)") == "iShares Core S&P 500 ETF"
+    assert clean_issuer("Apple Inc. - Common Stock (AAPL)") == "Apple Inc."
+
+
+def test_scrambled_names_rejected_and_official_names_preferred():
+    from src.tracker.report import _title_case, clean_issuer
+
+    for junk in ["sPAmerican Financial Group, Inc.", "MERRILL LYNCH INVESTMENT aCCoUNTSallergan, Inc.",
+                 "blDRS Emerging Markets 50 aDRIndex Fund", "JTalpha Pro Tech, ltd."]:
+        assert clean_issuer(junk) is None, junk
+    for ok in ["YouTube Inc", "PayPal Holdings, Inc.", "AbbVie Inc.", "eBay Inc.", "McDonald's Corp"]:
+        assert clean_issuer(ok) == ok, ok
+    assert _title_case("NVIDIA CORP") == "Nvidia Corp"
+    assert _title_case("BANK OF AMERICA CORP /DE/") == "Bank of America Corp"
+    trades = pd.DataFrame([_trade(1, "h:A", "UP", "buy", "2023-02-01", "2023-03-01")])
+    r = build_report(trades, _prices(), [], {"UP": "Up Industries Inc", "ZZZ": "Unused"})
+    assert r["issuers"] == {"UP": "Up Industries Inc"}
