@@ -50,24 +50,35 @@ def _d(x):
     return pd.Timestamp(x).strftime("%Y-%m-%d")
 
 
+# Older one-line House filings run the account name into the asset:
+# "Thomas C MacArthur IRAJTTaiwan Semiconductor" / "Brokerage AccountNVIDIA Corp"
+_ACCOUNT_PREFIX_RE = re.compile(r"^.*(?:Account|IRA|Brokerage|Roth|401\(?[kK]\)?|Trust)\s*(?=[A-Z])")
+_OWNER_PREFIX_RE = re.compile(r"^(?:SP|JT|DC)(?=[A-Z][a-z])")
+
+
 def clean_issuer(name: str | None) -> str | None:
     if not name:
         return None
-    n = re.sub(r"\([A-Z0-9.\-]{1,7}\)|\[[A-Z]{2}\]", "", str(name))
+    n = _ACCOUNT_PREFIX_RE.sub("", str(name).strip())
+    n = _OWNER_PREFIX_RE.sub("", n)
+    n = re.sub(r"\([A-Z0-9.\-]{1,7}\)|\[[A-Z]{2}\]", "", n)
     n = re.sub(r"\s*-\s*(Class [A-Z] )?(Common|Ordinary|Capital) (Stock|Shares).*$", "", n, flags=re.I)
     n = re.sub(r"\s+", " ", n).strip(" -,")
     return n[:60] or None
 
 
 def _issuer_names(decisions: pd.DataFrame) -> dict[str, str]:
-    """Longest cleaned name per ticker: PDF rows sometimes keep only a fragment."""
+    """One display name per ticker, from the cleaned names its filings use."""
     if decisions.empty:
         return {}
+    from collections import Counter
+
     out: dict[str, str] = {}
     for t, names in decisions.dropna(subset=["issuer"]).groupby("ticker")["issuer"]:
-        cleaned = [c for c in (clean_issuer(n) for n in names.unique()) if c]
-        if cleaned:
-            out[t] = max(cleaned, key=len)
+        counts = Counter(c for c in (clean_issuer(n) for n in names) if c)
+        if counts:
+            # Most common spelling; among ties, the fuller one
+            out[t] = max(counts, key=lambda c: (counts[c], len(c)))
     return out
 
 

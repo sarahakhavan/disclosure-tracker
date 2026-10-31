@@ -346,4 +346,10 @@ def test_issuer_names_cleaned_and_longest_kept():
     d = pd.DataFrame({"ticker": ["TSM", "TSM", "NVDA"], "issuer": [
         "Manufacturing Company Ltd. (TSM)", "Taiwan Semiconductor Manufacturing Company Ltd. (TSM)",
         "NVIDIA Corporation - Common Stock (NVDA)"]})
-    assert _issuer_names(d) == {"TSM": "Taiwan Semiconductor Manufacturing Company Ltd.", "NVDA": "NVIDIA Corporation"}
+    assert _issuer_names(d)["NVDA"] == "NVIDIA Corporation"
+    d2 = pd.DataFrame({"ticker": ["TSM"] * 3 + ["NVDA"], "issuer": [
+        "Taiwan Semiconductor Manufacturing Co (TSM)", "Taiwan Semiconductor Manufacturing Co (TSM)",
+        "Thomas C MacArthur IRAJTTaiwan Semiconductor ManufacturingCo",
+        "Morgan Stanley Smith Barney LLC Brokerage AccountNVIDIA Corp"]})
+    names = _issuer_names(d2)
+    assert names == {"TSM": "Taiwan Semiconductor Manufacturing Co", "NVDA": "NVIDIA Corp"}

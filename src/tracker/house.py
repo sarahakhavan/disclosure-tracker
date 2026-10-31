@@ -55,7 +55,7 @@ _LEGACY_RE = re.compile(
     r"(?P<d1>\d{1,2}/\d{1,2}/\d{4})\s*(?P<d2>\d{1,2}/\d{1,2}/\d{4})\s*"
     r"(?P<amt>\$\d[\d,]*\s*-\s*\$\d[\d,]*|[Oo]ver \$\d[\d,]*)"
 )
-_LEGACY_OWNER_RE = re.compile(r"(?<![A-Z])(SP|JT|DC)(?=[A-Z][a-z0-9])")
+_LEGACY_OWNER_RE = re.compile(r"(?:(?<![A-Z])|^)(SP|JT|DC)(?=[A-Z][a-z0-9])")
 _TAG_RE = re.compile(r"\[([A-Z]{2})\]")
 _TICKER_RE = re.compile(r"\(([A-Z][A-Z0-9.\-]{0,6})\)")
 _AMT_RE = re.compile(r"\$(\d[\d,]*)")
@@ -94,6 +94,7 @@ def parse_ptr_text_legacy(text: str) -> list[dict]:
         # a description running straight into the next name: "...1/20/17Walt Disney"
         ends += [m2.end() for m2 in re.finditer(r"\d(?=[A-Z][a-z])", head)]
         asset = head[max(ends) :] if ends else head
+        asset = re.sub(r"^.*(?:Account|IRA|Brokerage|Roth|401\(?[kK]\)?|Trust)\s*(?=[A-Z])", "", asset.strip())
         owner = None
         om = list(_LEGACY_OWNER_RE.finditer(asset))
         if om:
